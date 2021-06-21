@@ -87,6 +87,7 @@ public class Usd {
                 usdRestAccess.registerNewAccessKey(String.valueOf(usdRestAccess.access_key) , String.valueOf(usdRestAccess.expiration_date));
     
             } catch (IOException | InterruptedException e) {
+                log.addLogLine(LogType.ERROR, this.getClass().getSimpleName() + " ::: " +e.getMessage());
                 e.printStackTrace();
             }
         }
@@ -113,15 +114,13 @@ public class Usd {
 
                 responseBody = usdJsonFormatter.formatListResponse(httpResponse.body());
 
-                //System.out.println(responseBody);
-
                 Type listOfMyClassObject = new TypeToken<ArrayList<UsdCompany>>() {}.getType();
 
                 usdCompanies = new Gson().fromJson(responseBody, listOfMyClassObject);
             }
 
         } catch (IOException | InterruptedException e) {
-            System.out.println("An error has occurred: " + e.getMessage());
+            log.addLogLine(LogType.ERROR, this.getClass().getSimpleName() + " ::: " +e.getMessage());
             e.printStackTrace();
         }
         return usdCompanies;
@@ -145,17 +144,13 @@ public class Usd {
 
             if (httpResponse.statusCode()==200){
 
-                //System.out.println(httpResponse.body());
-
                 totalCount = usdJsonFormatter.getTotalCountFromQuery(httpResponse.body());
-
-                //System.out.println(totalCount);
 
                 if (totalCount > 0) result = true;
             }
 
         } catch (IOException | InterruptedException e) {
-            System.out.println("An error has occurred: " + e.getMessage());
+            log.addLogLine(LogType.ERROR, this.getClass().getSimpleName() + " ::: " +e.getMessage());
             e.printStackTrace();
         }
         return result;

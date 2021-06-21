@@ -13,9 +13,14 @@ import java.net.URI;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
+import br.com.sicredi.usdentitysync.Configuration;
+import br.com.sicredi.usdentitysync.Log;
+import br.com.sicredi.usdentitysync.LogType;
+
 public class Gestent {
 
-
+    Configuration config = new Configuration();
+    Log log = new Log();
 
     private static final HttpClient httpClient = HttpClient.newBuilder().build();
 
@@ -25,7 +30,8 @@ public class Gestent {
         Gson gson = new Gson();
         GestentJsonFormatter jsonFormatter = new GestentJsonFormatter();
 
-        URI gestentEndPoint = URI.create("https://gestent-conector-api.prd.sicredi.cloud/gestend/v2/entidade-sicredi/?page=" + pageNumber);
+        String gestEntEndPoint = config.getProperty("gestEntEndPoint");
+        URI gestentEndPoint = URI.create(gestEntEndPoint + "entidade-sicredi/?page=" + pageNumber);
 
         //creating the request
         HttpRequest gestentRequest  = HttpRequest.newBuilder()
@@ -41,7 +47,8 @@ public class Gestent {
             entityList = gson.fromJson(jsonFormatter.getEntityListFromResponse(httpResponse.body()), listOfMyClassObject);
                             
         } catch (IOException  | InterruptedException e) {
-            System.out.println(e.getMessage());
+            log.addLogLine(LogType.ERROR, this.getClass().getSimpleName() + " ::: " +e.getMessage());
+            e.printStackTrace();
         }
 
         return entityList;

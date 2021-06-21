@@ -109,7 +109,7 @@ public class Controller {
 
     private void createEntityInUsd(Entity entity){
 
-        UsdCompany newCompany = new UsdCompany(entity.getCodigoCooperativa() + entity.getCodigoAgencia() + " - " + entity.getNomeFantasia(),0);
+        UsdCompany newCompany = new UsdCompany(entity.getCodigoCooperativa() + entity.getCodigoAgencia() + " - " + entity.getNomeFantasia(),0,"UA");
 
         newCompany.setCodAgencia(entity.getCodigoAgencia());
         newCompany.setCodEntidade(entity.getCodigoCooperativa());

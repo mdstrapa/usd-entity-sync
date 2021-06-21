@@ -6,6 +6,7 @@ public class UsdCompany {
     String sym;
     Integer delete_flag;
     String parent_company_uuid;
+    UsdCompanyType company_type;
     String z_str_cidade;
     String z_str_estado;
     String z_str_status_entidade;
@@ -13,9 +14,10 @@ public class UsdCompany {
     String z_str_cod_entidade;
     String z_str_cod_ua;
 
-    public UsdCompany(String sym, Integer delete_flag){
+    public UsdCompany(String sym, Integer delete_flag, String company_type_sym){
         this.sym = sym;
         this.delete_flag = delete_flag;
+        this.company_type = new UsdCompanyType(company_type_sym, 0);
     }
 
     public String getSym(){
