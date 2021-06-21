@@ -29,7 +29,7 @@ public class UsdJsonFormatter {
         return formattedJson.substring(0, formattedJson.lastIndexOf("]") + 1);
     }
 
-    public String formatRequestBody(Object objectToFormat, String usdObject){
+    public String formatRequestBodyForCreate(Object objectToFormat, String usdObject){
 
         Gson gson = new Gson();
         String requestBody = gson.toJson(objectToFormat)

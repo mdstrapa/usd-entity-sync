@@ -8,6 +8,7 @@ import br.com.sicredi.usdentitysync.gestent.Entity;
 import br.com.sicredi.usdentitysync.gestent.Gestent;
 import br.com.sicredi.usdentitysync.usd.Usd;
 import br.com.sicredi.usdentitysync.usd.UsdCompany;
+import br.com.sicredi.usdentitysync.usd.UsdParentCompany;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -72,10 +73,10 @@ public class Controller {
         List<String> entityTypesToProcess = new ArrayList<>();
 
         entityTypesToProcess.add("AGENCIA");
-        entityTypesToProcess.add("COOPERATIVA");
-        entityTypesToProcess.add("BANCO");
-        entityTypesToProcess.add("SUREG");
-        entityTypesToProcess.add("CENTRALIZADORA");
+        // entityTypesToProcess.add("COOPERATIVA");
+        // entityTypesToProcess.add("BANCO");
+        // entityTypesToProcess.add("SUREG");
+        // entityTypesToProcess.add("CENTRALIZADORA");
 
         List<Entity> entityListPagged = new ArrayList<>();
         List<Entity> entityListToProcess = new ArrayList<>();
@@ -96,26 +97,28 @@ public class Controller {
     }
 
     private void processEntities(List<Entity> entitiesToProcess){
-        for (Entity entity : entitiesToProcess) {
-            if (!entityExists(entity)) createEntityInUsd(entity);
-        }
-    }
-    
-    
-    private Boolean entityExists(Entity entity){
         Usd usd = new Usd();
-        return usd.checkIfCompanyExists(entity.getCodigoCooperativa() + entity.getCodigoAgencia());
+
+        for (Entity entity : entitiesToProcess) {
+            if (!usd.checkIfCompanyExists(entity.getCodigoCooperativa() + entity.getCodigoAgencia())) createEntityInUsd(entity);
+        }
     }
 
     private void createEntityInUsd(Entity entity){
 
         UsdCompany newCompany = new UsdCompany(entity.getCodigoCooperativa() + entity.getCodigoAgencia() + " - " + entity.getNomeFantasia(),0,"UA");
 
-        newCompany.setCodAgencia(entity.getCodigoAgencia());
+        newCompany.setCodAgencia(entity.getCodigoCooperativa() + entity.getCodigoAgencia());
         newCompany.setCodEntidade(entity.getCodigoCooperativa());
+        newCompany.setCodUa(entity.getCodigoAgencia());
         newCompany.setCidade(entity.getNomeCidade());
         newCompany.setEstado(entity.getSiglaEstado());
+        
         Usd usd = new Usd();
+
+        String parentCompanyUuid = usd.getParentCompany(newCompany);
+        UsdParentCompany parentCompany = new UsdParentCompany(parentCompanyUuid);
+        newCompany.setParentCompany(parentCompany);
 
         usd.createCompany(newCompany);
 

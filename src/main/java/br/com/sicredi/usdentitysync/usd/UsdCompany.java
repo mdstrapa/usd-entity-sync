@@ -5,7 +5,7 @@ public class UsdCompany {
 
     String sym;
     Integer delete_flag;
-    String parent_company_uuid;
+    UsdParentCompany parent_company;
     UsdCompanyType company_type;
     String z_str_cidade;
     String z_str_estado;
@@ -15,29 +15,34 @@ public class UsdCompany {
     String z_str_cod_ua;
 
     public UsdCompany(String sym, Integer delete_flag, String company_type_sym){
-        this.sym = sym;
+        this.sym = sym.toUpperCase();
         this.delete_flag = delete_flag;
-        this.company_type = new UsdCompanyType(company_type_sym, 0);
+        this.company_type = new UsdCompanyType(company_type_sym);
+        this.z_str_status_entidade = "ATIVA";
     }
 
     public String getSym(){
         return this.sym;
     }
 
-    public void setParentCompany(String parentCompanyUuid){
-        this.parent_company_uuid = parentCompanyUuid;
+    public String getCodAgencia(){
+        return this.z_str_cod_agencia;
+    }
+
+    public void setParentCompany(UsdParentCompany parentCompany){
+        this.parent_company = parentCompany;
     }
 
     public void setCidade(String nomeCidade){
-        this.z_str_cidade = nomeCidade;
+        if(nomeCidade != null) this.z_str_cidade = nomeCidade.toUpperCase();
     }
 
     public void setEstado(String siglaEstado){
-        this.z_str_estado = siglaEstado;
+        if(siglaEstado != null) this.z_str_estado = siglaEstado.toUpperCase();
     }
-    public void setStatusEntidade(String statusEntidade){
-        this.z_str_status_entidade = statusEntidade;
-    }
+    // public void setStatusEntidade(String statusEntidade){
+    //     this.z_str_status_entidade = statusEntidade;
+    // }
     public void setCodAgencia(String codAgencia){
         this.z_str_cod_agencia = codAgencia;
     }

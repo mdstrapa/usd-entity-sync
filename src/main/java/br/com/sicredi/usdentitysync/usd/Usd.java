@@ -161,9 +161,13 @@ public class Usd {
 
         UsdRestAccess restAccess = getAccessKey();
 
-        String requestBody = gson.toJson(usdCompany);
+        //String requestBody = gson.toJson(usdCompany);
 
-        HttpRequest request = buildUsdRequest("POST","ca_cmpny/", requestBody, restAccess.access_key);
+        //HttpRequest request = buildUsdRequest("POST","ca_cmpny/", requestBody, restAccess.access_key);
+
+        UsdJsonFormatter usdJsonFormatter = new UsdJsonFormatter();
+
+        String requestBody = usdJsonFormatter.formatRequestBodyForCreate(usdCompany, "ca_cmpny");;
 
         System.out.println(requestBody);
 
@@ -184,6 +188,40 @@ public class Usd {
         // }
 
         return result;
+    }
+
+    public String getParentCompany(UsdCompany childCompany){
+        String parentRellAttr = "";
+
+        UsdRestAccess restAccess = getAccessKey();
+
+        String whereClause = "";
+
+        if (childCompany.company_type.COMMON_NAME == "UA"){
+            whereClause = "sym%20like%20%27" + childCompany.getCodAgencia().substring(0,4) + "%25%27%20and%20company_type%20%3D%201000047";
+        }
+
+        HttpRequest request = buildUsdRequest("GET","ca_cmpny?WC=" + whereClause, "", restAccess.access_key);
+
+        try {            
+            
+            HttpResponse<String> httpResponse = httpClient.send(request, BodyHandlers.ofString());
+
+            if (config.isDebugMode()) log.addLogLine(LogType.INFO, httpResponse.body());
+
+            if (httpResponse.statusCode()==200){
+
+                parentRellAttr = usdJsonFormatter.getRellAttrFromResponse(httpResponse.body());
+                //System.out.println("The Rell ATTR is " + parentRellAttr);
+
+            }
+
+        } catch (IOException | InterruptedException e) {
+            log.addLogLine(LogType.ERROR, this.getClass().getSimpleName() + " ::: " +e.getMessage());
+            e.printStackTrace();
+        }
+
+        return parentRellAttr;
     }
     
 }

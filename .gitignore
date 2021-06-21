@@ -34,6 +34,7 @@ build/
 
 
 ### Other ###
-.DS_Store
-.mvn
-.log
+*.DS_Store
+*.mvn
+*.log
+*.log*
