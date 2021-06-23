@@ -3,6 +3,7 @@ package br.com.sicredi.usdentitysync.usd;
 import br.com.sicredi.usdentitysync.Configuration;
 import br.com.sicredi.usdentitysync.Log;
 import br.com.sicredi.usdentitysync.LogType;
+import br.com.sicredi.usdentitysync.gestent.Entity;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -50,15 +51,16 @@ public class Usd {
                 .method(method, BodyPublishers.ofString(requestBody))
                 .setHeader("Accept", "application/json")
                 .setHeader("X-Obj-Attrs", "summary,description,category")
-                .setHeader("X-AccessKey",String.valueOf(accessKey))
+                .setHeader("X-AccessKey","1929623256")
                 .build();
+                
         }else if (method == "POST") {
             usdRequest = HttpRequest.newBuilder()
                 .uri(usdEndPoint)
                 .method(method, BodyPublishers.ofString(requestBody))
                 .setHeader("Accept", "application/json")
                 .setHeader("Content-Type", "application/json")
-                .setHeader("X-AccessKey",String.valueOf(accessKey))
+                .setHeader("X-AccessKey","1929623256")
                 .build();
         }
 //.setHeader("X-AccessKey","1712166793")
@@ -127,14 +129,16 @@ public class Usd {
     }
 
 
-    public Boolean checkIfCompanyExists(String companyCode){
-        Boolean result = false;
+    public Boolean checkIfCompanyExists(Entity entity){
+        Boolean result = true;
 
         Integer totalCount = 0;
  
+        String companyCode = entity.getCodigoCooperativa() + entity.getCodigoAgencia();
+
         UsdRestAccess restAccess = getAccessKey();
 
-        HttpRequest request = buildUsdRequest("GET","ca_cmpny?WC=z_str_cod_agencia%3D%27" + companyCode + "%27", "", restAccess.access_key);
+        HttpRequest request = buildUsdRequest("GET","ca_cmpny?WC=z_str_cod_agencia2%3D%27" + companyCode + "%27", "", restAccess.access_key);
 
         try {            
             
@@ -145,7 +149,7 @@ public class Usd {
             if (httpResponse.statusCode()==200){
 
                 totalCount = usdJsonFormatter.getTotalCountFromQuery(httpResponse.body());
-
+                //System.out.println(httpResponse.body());
                 if (totalCount > 0) result = true;
             }
 
@@ -163,29 +167,30 @@ public class Usd {
 
         //String requestBody = gson.toJson(usdCompany);
 
-        //HttpRequest request = buildUsdRequest("POST","ca_cmpny/", requestBody, restAccess.access_key);
-
+        
         UsdJsonFormatter usdJsonFormatter = new UsdJsonFormatter();
-
+        
         String requestBody = usdJsonFormatter.formatRequestBodyForCreate(usdCompany, "ca_cmpny");;
-
+        
+        HttpRequest request = buildUsdRequest("POST","ca_cmpny/", requestBody, restAccess.access_key);
+        
         System.out.println(requestBody);
 
 
-        // try {            
+        try {            
             
-        //     HttpResponse<String> httpResponse = httpClient.send(request, BodyHandlers.ofString());
+            HttpResponse<String> httpResponse = httpClient.send(request, BodyHandlers.ofString());
 
-        //     if (config.isDebugMode()) log.addLogLine(LogType.INFO, httpResponse.body());
+            if (config.isDebugMode()) log.addLogLine(LogType.INFO, httpResponse.body());
 
-        //     if (httpResponse.statusCode()==2021) result = true;
+            if (httpResponse.statusCode()==201) result = true;
 
 
 
-        // } catch (IOException | InterruptedException e) {
-        //     System.out.println("An error has occurred: " + e.getMessage());
-        //     e.printStackTrace();
-        // }
+        } catch (IOException | InterruptedException e) {
+            log.addLogLine(LogType.ERROR, this.getClass().getSimpleName() + " ::: " +e.getMessage());
+            e.printStackTrace();
+        }
 
         return result;
     }
@@ -212,7 +217,7 @@ public class Usd {
             if (httpResponse.statusCode()==200){
 
                 parentRellAttr = usdJsonFormatter.getRellAttrFromResponse(httpResponse.body());
-                //System.out.println("The Rell ATTR is " + parentRellAttr);
+                System.out.println("The Rell ATTR is " + parentRellAttr);
 
             }
 

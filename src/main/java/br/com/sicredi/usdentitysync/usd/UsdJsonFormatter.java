@@ -36,7 +36,8 @@ public class UsdJsonFormatter {
             .concat("}")
             .replace("REL_ATTR", "@REL_ATTR")
             .replace("COMMON_NAME", "@COMMON_NAME")
-            .replace("\"id","\"@id");
+            .replace("\"id","\"@id")
+            .replace("\\u0027","'");
         
         requestBody = "{\"" + usdObject + "\" : ".concat(requestBody);
 

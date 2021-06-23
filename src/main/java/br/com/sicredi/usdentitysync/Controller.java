@@ -18,35 +18,31 @@ import java.text.*;
 @RestController
 public class Controller {
 
-    @GetMapping("/")
-    public String index(){
+        //entityTypesToProcess.add("AGENCIA");
+        // entityTypesToProcess.add("COOPERATIVA");
+        // entityTypesToProcess.add("BANCO");
+        // entityTypesToProcess.add("SUREG");
+        // entityTypesToProcess.add("CENTRALIZADORA");
 
-        List<Entity> entityListToProcess = getEntityToProcess();
+    @GetMapping("/syncEntities")
+    public String syncEntities(@RequestParam ExecutionMode executionMode, @RequestParam String entityTypeToProcess, @RequestParam String thresholdDate){
+        
+        System.out.println("Process Begins =======================");
 
-        processEntities(entityListToProcess);
+        List<Entity> entityListToProcess = getEntityToProcess(entityTypeToProcess,thresholdDate);
 
-        String htmlBody = showEntities(entityListToProcess);
+        processEntities(entityListToProcess,executionMode);
 
-        //List<UsdCompany> usdCompanies = getUsdCompanies();
-
-        //String htmlBody = showCompanies(usdCompanies);
+        String htmlBody = showProcessResult(entityListToProcess,executionMode);    
+        
+        System.out.println("Process End ==========================");
 
         return htmlBody;
     }
 
-    public String createNewEntities(@RequestParam String entityType){
-        return "ok";
-    }
-
-    private Date getThrasholdDate(){
-        SimpleDateFormat sdformat = new SimpleDateFormat("yyyy-MM-dd");
-        Date returnDate = new Date();
-        try{
-            returnDate = sdformat.parse("2021-05-01");
-        }catch (ParseException e){
-            System.out.println(e.getMessage());
-        }
-        return returnDate;
+    @GetMapping("/")
+    public String index(){
+        return "This is the API that syncs Entities into USD";
     }
 
     private Date convertToDate(String dateToConvert){
@@ -60,34 +56,24 @@ public class Controller {
         return returnDate;
     }
 
-    private boolean evaluateModifiedDate(Date dateToCompare){
+    private boolean evaluateModifiedDate(Date entityModifiedDate, Date thrasholdDate){
         Boolean result = false;
-        Date thrasholdDate = getThrasholdDate();
-        if (dateToCompare.compareTo(thrasholdDate) > 0 ) result = true;
+        if (entityModifiedDate.compareTo(thrasholdDate) > 0 ) result = true;
         return result;
     }
 
-    private List<Entity> getEntityToProcess(){
+    private List<Entity> getEntityToProcess(String entityTypeToProcess, String thresholdDate){
         Gestent gestent = new Gestent();
-
-        List<String> entityTypesToProcess = new ArrayList<>();
-
-        entityTypesToProcess.add("AGENCIA");
-        // entityTypesToProcess.add("COOPERATIVA");
-        // entityTypesToProcess.add("BANCO");
-        // entityTypesToProcess.add("SUREG");
-        // entityTypesToProcess.add("CENTRALIZADORA");
-
         List<Entity> entityListPagged = new ArrayList<>();
         List<Entity> entityListToProcess = new ArrayList<>();
 
-        for(int c = 0;c<40;c++){
+        for(int c = 0;c<384;c++){
             entityListPagged = gestent.getEntityList(c);
             for (Entity entity : entityListPagged) {
-                System.out.println("Processing entity: " + entity.getNomeFantasia() + " - " + entity.getCodigoTipoEntidade());
+                //System.out.println("Processing entity: " + entity.getNomeFantasia() + " - " + entity.getCodigoTipoEntidade());
                 if (entity.getDataAtualizacao() != null && entity.getDataAtualizacao() != "null" ){
-                    if (evaluateModifiedDate(convertToDate(entity.getDataAtualizacao()))){
-                        if (entityTypesToProcess.contains(entity.getCodigoTipoEntidade())) entityListToProcess.add(entity);
+                    if (evaluateModifiedDate(convertToDate(entity.getDataAtualizacao()),convertToDate(thresholdDate))){
+                        if (entityTypeToProcess.equals(entity.getCodigoTipoEntidade())) entityListToProcess.add(entity);
                     }
                 }
             }
@@ -96,11 +82,18 @@ public class Controller {
         return entityListToProcess;
     }
 
-    private void processEntities(List<Entity> entitiesToProcess){
+    private void processEntities(List<Entity> entitiesToProcess, ExecutionMode executionMode){
         Usd usd = new Usd();
 
         for (Entity entity : entitiesToProcess) {
-            if (!usd.checkIfCompanyExists(entity.getCodigoCooperativa() + entity.getCodigoAgencia())) createEntityInUsd(entity);
+            if (!usd.checkIfCompanyExists(entity)){
+                switch (executionMode){
+                    case WRITE:
+                        createEntityInUsd(entity);
+                    case CHECKONLY:
+                        entity.setAction("Would Be Created");
+                }
+            }else entity.setAction("Already Exist in USD");
         }
     }
 
@@ -120,14 +113,14 @@ public class Controller {
         UsdParentCompany parentCompany = new UsdParentCompany(parentCompanyUuid);
         newCompany.setParentCompany(parentCompany);
 
-        usd.createCompany(newCompany);
-
-        entity.setAction("WILL CREATE");
+        if (usd.createCompany(newCompany)) entity.setAction("ENTITY CREATED");
+        else entity.setAction("Error on entity creation");
     }
 
-    private String showEntities(List<Entity> entityListToShow){
+    private String showProcessResult(List<Entity> entityListToShow, ExecutionMode executionMode){
         String htmlBody = "<table>";
-
+        htmlBody = htmlBody + "<tr><td colspan=6></td>Execution Mode: " + executionMode + "</td></tr>";
+        htmlBody = htmlBody + "<tr><td></td><td>Code</td><td>Name</td><td>Type</td><td>Mod Date</td><td>Action</td></tr>";
         int entityCount = 1;
         for (Entity entity : entityListToShow) {
             htmlBody = htmlBody 
@@ -145,32 +138,4 @@ public class Controller {
         return htmlBody;
     }
 
-    private List<UsdCompany> getUsdCompanies(){
-
-        List<UsdCompany> usdCompanies = new ArrayList<>();
-        Usd usd = new Usd();
-
-
-        usdCompanies = usd.getUsdCompanies();
-
-        return usdCompanies;
-
-    }
-
-    private String showCompanies(List<UsdCompany> usdCompanies){
-
-        String htmlBody = "<table>";
-
-        int companyCount = 1;
-        for (UsdCompany company : usdCompanies) {
-            htmlBody = htmlBody 
-                + "<tr><td>"  + companyCount
-                + "</td><td>" + company.getSym()
-                + "</td></tr>";
-            companyCount++;
-        }
-        
-        htmlBody = htmlBody + "</table>";
-        return htmlBody;
-    }
 }
