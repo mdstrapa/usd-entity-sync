@@ -15,7 +15,10 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.text.*;
 
+import lombok.extern.slf4j.Slf4j;
+
 @RestController
+@Slf4j
 public class Controller {
 
         //entityTypesToProcess.add("AGENCIA");
@@ -26,16 +29,16 @@ public class Controller {
 
     @GetMapping("/syncEntities")
     public String syncEntities(@RequestParam ExecutionMode executionMode, @RequestParam String entityTypeToProcess, @RequestParam String thresholdDate){
-        
-        System.out.println("Process Begins =======================");
+
+        log.info("Process Begins =======================");
 
         List<Entity> entityListToProcess = getEntityToProcess(entityTypeToProcess,thresholdDate);
 
         processEntities(entityListToProcess,executionMode);
 
-        String htmlBody = showProcessResult(entityListToProcess,executionMode);    
-        
-        System.out.println("Process End ==========================");
+        String htmlBody = showProcessResult(entityListToProcess,executionMode);
+
+        log.info("Process End ==========================");
 
         return htmlBody;
     }
@@ -70,7 +73,9 @@ public class Controller {
         for(int c = 0;c<384;c++){
             entityListPagged = gestent.getEntityList(c);
             for (Entity entity : entityListPagged) {
-                //System.out.println("Processing entity: " + entity.getNomeFantasia() + " - " + entity.getCodigoTipoEntidade());
+
+                if (log.isDebugEnabled()) log.debug("Processing entity: " + entity.getNomeFantasia() + " - " + entity.getCodigoTipoEntidade());
+
                 if (entity.getDataAtualizacao() != null && entity.getDataAtualizacao() != "null" ){
                     if (evaluateModifiedDate(convertToDate(entity.getDataAtualizacao()),convertToDate(thresholdDate))){
                         if (entityTypeToProcess.equals(entity.getCodigoTipoEntidade())) entityListToProcess.add(entity);

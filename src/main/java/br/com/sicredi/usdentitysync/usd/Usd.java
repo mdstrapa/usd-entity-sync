@@ -1,8 +1,6 @@
 package br.com.sicredi.usdentitysync.usd;
 
 import br.com.sicredi.usdentitysync.Configuration;
-import br.com.sicredi.usdentitysync.Log;
-import br.com.sicredi.usdentitysync.LogType;
 import br.com.sicredi.usdentitysync.gestent.Entity;
 
 import java.io.IOException;
@@ -17,13 +15,14 @@ import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class Usd {
 
     private UsdJsonFormatter usdJsonFormatter = new UsdJsonFormatter();
 
     private Configuration config = new Configuration();
-    private Log log = new Log();
     private Gson gson = new Gson();
 
 
@@ -81,7 +80,7 @@ public class Usd {
     
             try {
                 HttpResponse<String> httpResponse = httpClient.send(request, BodyHandlers.ofString());
-                if (config.isDebugMode()) log.addLogLine(LogType.INFO, httpResponse.body());
+                if (log.isDebugEnabled()) log.info(httpResponse.body());
                 responseBody = usdJsonFormatter.formatObjectResponse(httpResponse.body(),"rest_access");
                 System.out.println(responseBody);
                 usdRestAccess = new Gson().fromJson(responseBody, UsdRestAccess.class);
@@ -89,7 +88,7 @@ public class Usd {
                 usdRestAccess.registerNewAccessKey(String.valueOf(usdRestAccess.access_key) , String.valueOf(usdRestAccess.expiration_date));
     
             } catch (IOException | InterruptedException e) {
-                log.addLogLine(LogType.ERROR, this.getClass().getSimpleName() + " ::: " +e.getMessage());
+                log.error(this.getClass().getSimpleName() + " ::: " +e.getMessage());
                 e.printStackTrace();
             }
         }
@@ -110,7 +109,7 @@ public class Usd {
             
             HttpResponse<String> httpResponse = httpClient.send(request, BodyHandlers.ofString());
 
-            if (config.isDebugMode()) log.addLogLine(LogType.INFO, httpResponse.body());
+            if (log.isDebugEnabled()) log.info(httpResponse.body());
 
             if (httpResponse.statusCode()==200){
 
@@ -122,7 +121,7 @@ public class Usd {
             }
 
         } catch (IOException | InterruptedException e) {
-            log.addLogLine(LogType.ERROR, this.getClass().getSimpleName() + " ::: " +e.getMessage());
+            log.error(this.getClass().getSimpleName() + " ::: " +e.getMessage());
             e.printStackTrace();
         }
         return usdCompanies;
@@ -144,7 +143,7 @@ public class Usd {
             
             HttpResponse<String> httpResponse = httpClient.send(request, BodyHandlers.ofString());
 
-            if (config.isDebugMode()) log.addLogLine(LogType.INFO, httpResponse.body());
+            if (log.isDebugEnabled()) log.info(httpResponse.body());
 
             if (httpResponse.statusCode()==200){
 
@@ -154,7 +153,7 @@ public class Usd {
             }
 
         } catch (IOException | InterruptedException e) {
-            log.addLogLine(LogType.ERROR, this.getClass().getSimpleName() + " ::: " +e.getMessage());
+            log.error(this.getClass().getSimpleName() + " ::: " +e.getMessage());
             e.printStackTrace();
         }
         return result;
@@ -164,31 +163,28 @@ public class Usd {
         Boolean result = false;
 
         UsdRestAccess restAccess = getAccessKey();
-
-        //String requestBody = gson.toJson(usdCompany);
-
         
         UsdJsonFormatter usdJsonFormatter = new UsdJsonFormatter();
         
         String requestBody = usdJsonFormatter.formatRequestBodyForCreate(usdCompany, "ca_cmpny");;
         
         HttpRequest request = buildUsdRequest("POST","ca_cmpny/", requestBody, restAccess.access_key);
-        
-        System.out.println(requestBody);
+
+        if (log.isDebugEnabled()) log.debug(requestBody);
 
 
         try {            
             
             HttpResponse<String> httpResponse = httpClient.send(request, BodyHandlers.ofString());
 
-            if (config.isDebugMode()) log.addLogLine(LogType.INFO, httpResponse.body());
+            if (log.isDebugEnabled()) log.info(httpResponse.body());
 
             if (httpResponse.statusCode()==201) result = true;
 
 
 
         } catch (IOException | InterruptedException e) {
-            log.addLogLine(LogType.ERROR, this.getClass().getSimpleName() + " ::: " +e.getMessage());
+            log.info(this.getClass().getSimpleName() + " ::: " +e.getMessage());
             e.printStackTrace();
         }
 
@@ -212,17 +208,17 @@ public class Usd {
             
             HttpResponse<String> httpResponse = httpClient.send(request, BodyHandlers.ofString());
 
-            if (config.isDebugMode()) log.addLogLine(LogType.INFO, httpResponse.body());
+            if (log.isDebugEnabled()) log.info(httpResponse.body());
 
             if (httpResponse.statusCode()==200){
 
                 parentRellAttr = usdJsonFormatter.getRellAttrFromResponse(httpResponse.body());
-                System.out.println("The Rell ATTR is " + parentRellAttr);
+                if (log.isDebugEnabled()) log.debug("The Rell ATTR is " + parentRellAttr);
 
             }
 
         } catch (IOException | InterruptedException e) {
-            log.addLogLine(LogType.ERROR, this.getClass().getSimpleName() + " ::: " +e.getMessage());
+            log.error(this.getClass().getSimpleName() + " ::: " +e.getMessage());
             e.printStackTrace();
         }
 

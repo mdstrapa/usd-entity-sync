@@ -14,13 +14,13 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import br.com.sicredi.usdentitysync.Configuration;
-import br.com.sicredi.usdentitysync.Log;
-import br.com.sicredi.usdentitysync.LogType;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class Gestent {
 
     Configuration config = new Configuration();
-    Log log = new Log();
+    //Log log = new Log();
 
     private static final HttpClient httpClient = HttpClient.newBuilder().build();
 
@@ -47,7 +47,7 @@ public class Gestent {
             entityList = gson.fromJson(jsonFormatter.getEntityListFromResponse(httpResponse.body()), listOfMyClassObject);
                             
         } catch (IOException  | InterruptedException e) {
-            log.addLogLine(LogType.ERROR, this.getClass().getSimpleName() + " ::: " +e.getMessage());
+            log.error(this.getClass().getSimpleName() + " ::: " +e.getMessage());
             e.printStackTrace();
         }
 
